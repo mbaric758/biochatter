@@ -6,6 +6,8 @@ import numpy as np
 import pandas as pd
 import pytest
 import requests
+import jsonargparse
+from requests.structures import CaseInsensitiveDict
 from xinference.client import Client
 
 from biochatter.llm_connect import (
@@ -392,7 +394,7 @@ def pytest_collection_modifyitems(items):
 
 
 # parameterise tests to run for each model
-@pytest.fixture(params=BENCHMARKED_MODELS)
+@pytest.fixture
 def model_name(request):
     return request.param
 
@@ -470,6 +472,7 @@ def conversation(request, model_name, client) -> Conversation:
     implement yet). If not skipped, will create a conversation object for
     interfacing with the model.
     """
+
     test_name = request.node.originalname.replace("test_", "")
     subtask = "?"  # TODO: can we get the subtask here?
     if benchmark_already_executed(model_name, test_name, subtask):
@@ -480,6 +483,7 @@ def conversation(request, model_name, client) -> Conversation:
             model_name=model_name,
             prompts={},
             correct=False,
+            base_url="INSERT_BASE_URL"
         )
         conversation.set_api_key(
             os.getenv("OPENAI_API_KEY"),
@@ -860,6 +864,7 @@ def delete_results_csv_file_content(request):
 
 @pytest.fixture(scope="session")
 def result_files():
+    #TODO add timestamp to results.
     RESULT_FILES = [f"benchmark/results/{file}" for file in os.listdir("benchmark/results") if file.endswith(".csv")]
     result_files = {}
     result_columns = [
@@ -912,45 +917,166 @@ def pytest_generate_tests(metafunc):
     # Load the data
     data = BENCHMARK_DATASET
 
-    # Parametrize the fixtures with the collected rows
-    if "test_data_biocypher_query_generation" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_data_biocypher_query_generation",
-            data["biocypher_query_generation"],
-        )
-    if "test_data_rag_interpretation" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_data_rag_interpretation",
-            data["rag_interpretation"],
-        )
-    if "test_data_text_extraction" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_data_text_extraction",
-            data["text_extraction"],
-        )
-    if "test_data_api_calling" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_data_api_calling",
-            data["api_calling"],
-        )
-    if "test_data_medical_exam" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_data_medical_exam",
-            data["medical_exam"],
-        )
-    if "test_create_longevity_responses_simultaneously" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_create_longevity_responses_simultaneously",
-            data["longevity_geriatric_case_assessment"],
-        )
-    if "test_data_mcp_edam_qa" in metafunc.fixturenames:
-        metafunc.parametrize(
-            "test_data_mcp_edam_qa",
-            data.get("mcp_edam_qa", []),
-        )
+    # # Parametrize the fixtures with the collected rows
+    # if "test_data_biocypher_query_generation" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_data_biocypher_query_generation",
+    #         data["biocypher_query_generation"],
+    #     )
+    # if "test_data_rag_interpretation" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_data_rag_interpretation",
+    #         data["rag_interpretation"],
+    #     )
+    # if "test_data_text_extraction" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_data_text_extraction",
+    #         data["text_extraction"],
+    #     )
+    # if "test_data_api_calling" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_data_api_calling",
+    #         data["api_calling"],
+    #     )
+    # if "test_data_medical_exam" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_data_medical_exam",
+    #         data["medical_exam"],
+    #     )
+    # if "test_create_longevity_responses_simultaneously" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_create_longevity_responses_simultaneously",
+    #         data["longevity_geriatric_case_assessment"],
+    #     )
+    # if "test_data_mcp_edam_qa" in metafunc.fixturenames:
+    #     metafunc.parametrize(
+    #         "test_data_mcp_edam_qa",
+    #         data.get("mcp_edam_qa", []),
+    #     )
 
 
 @pytest.fixture
 def kg_schemas():
     data = BENCHMARK_DATASET
     return data["kg_schemas"]
+
+
+CASE = ""
+
+@pytest.fixture
+def case():
+    case = CASE
+    return case
+
+def pytest_generate_tests(metafunc):
+    """Generate test cases dynamically."""
+    data = BENCHMARK_DATASET
+
+    if "model_name" in metafunc.fixturenames:
+        if not BENCHMARKED_MODELS:
+            pytest.skip("No benchmarked models specified")
+        metafunc.parametrize("model_name", BENCHMARKED_MODELS)
+
+    def parametrize_if_present(fixture_name, dataset_key):
+        if fixture_name in metafunc.fixturenames:
+            cases = data[dataset_key]
+
+            if CASE:
+                cases = [c for c in cases if c.get("case") == CASE]
+
+            metafunc.parametrize(
+                fixture_name,
+                cases,
+                ids=[c.get("case", str(i)) for i, c in enumerate(cases)],
+            )
+
+    parametrize_if_present("test_data_biocypher_query_generation", "biocypher_query_generation")
+    parametrize_if_present("test_data_rag_interpretation", "rag_interpretation")
+    parametrize_if_present("test_data_text_extraction", "text_extraction")
+    parametrize_if_present("test_data_api_calling", "api_calling")
+    parametrize_if_present("test_data_medical_exam", "medical_exam")
+    parametrize_if_present("test_create_longevity_responses_simultaneously", "longevity_geriatric_case_assessment")
+
+
+import pytest
+
+
+def main() -> None:
+    import argparse
+    import jsonargparse
+    import logging
+    import os
+    import sys
+    import pytest
+
+
+    appname = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+    logging.basicConfig()
+    logger = logging.getLogger(appname)
+
+    parser = jsonargparse.ArgumentParser(
+        description="Run the BioChatter Benchmark.",
+        env_prefix="benchmark",
+        default_env=True,
+        formatter_class=argparse.RawTextHelpFormatter,
+        logger=logger,
+    )
+
+    parser.add_argument(
+        "--models",
+        metavar="gpt-oss-120b",
+        nargs="+",
+        help="Which models to run the benchmark with.",
+    )
+    parser.add_argument(
+        "--nb_iterations", type=int, help="Number of iterations to run the benchmark"
+    )
+    parser.add_argument(
+        "--test",
+        type=str,
+        default=None,
+        help="Specific test file to run.",
+    )
+
+    parser.add_argument(
+        "--case",
+        type=str,
+        default=None,
+        help="Specific case to run.",
+    )
+
+    parser.add_argument(
+        "--pytest-args",
+        nargs=argparse.REMAINDER,
+        help="Everything after this flag is passed directly to pytest.",
+    )
+
+    args = parser.parse_args()
+
+
+    if args.models:
+        global BENCHMARKED_MODELS, OPENAI_MODEL_NAMES
+        OPENAI_MODEL_NAMES.extend(args.models)
+        BENCHMARKED_MODELS.extend(args.models)
+
+    if args.nb_iterations is not None:
+        global N_ITERATIONS
+        N_ITERATIONS = args.nb_iterations
+
+    if args.case:
+        global CASE
+        CASE = args.case
+
+
+    pytest_args: list[str] = ["-v"]  # always verbose
+
+    if args.test:
+        pytest_args.extend([args.test])
+
+    if args.pytest_args:
+        pytest_args.extend(args.pytest_args)
+
+    sys.exit(pytest.main(pytest_args))
+
+if __name__ == "__main__":
+    main()
