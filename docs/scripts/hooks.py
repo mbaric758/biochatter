@@ -97,21 +97,21 @@ def on_pre_build() -> None:
         else:
             print("Note: File does not contain 'score' column.")
 
-    overview = create_overview_table(result_files_path, overview_file_names)
+    # overview = create_overview_table(result_files_path, overview_file_names)
 
     plot_text2cypher()
     plot_text2cypher_safety_only()
-    plot_image_caption_confidence()
-    plot_medical_exam()
-    plot_extraction_tasks()
-    plot_scatter_per_quantisation(overview)
-    plot_accuracy_per_model(overview)
-    plot_accuracy_per_quantisation(overview)
-    plot_accuracy_per_task(overview)
-    plot_task_comparison(overview)
-    plot_rag_tasks(overview)
-    plot_comparison_naive_biochatter(overview)
-    calculate_stats(overview)
+    # plot_image_caption_confidence()
+    # plot_medical_exam()
+    # plot_extraction_tasks()
+    # plot_scatter_per_quantisation(overview)
+    # plot_accuracy_per_model(overview)
+    # plot_accuracy_per_quantisation(overview)
+    # plot_accuracy_per_task(overview)
+    # plot_task_comparison(overview)
+    # plot_rag_tasks(overview)
+    # plot_comparison_naive_biochatter(overview)
+    # calculate_stats(overview)
 
 
 if __name__ == "__main__":

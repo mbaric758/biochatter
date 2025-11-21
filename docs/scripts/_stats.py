@@ -5,6 +5,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -78,11 +79,20 @@ def calculate_stats(overview: pd.DataFrame) -> None:
     )
     plt.close()
 
-    # calculate correlation between quantisation and accuracy for all tasks
-    # convert quantisation to float, make >= 16-bit* = 16, replace -bit with nothing
-    quantisation = overview_melted["Quantisation"].apply(
-        lambda x: 16 if x == ">= 16-bit*" else float(x.replace("-bit", "")),
-    )
+    # # calculate correlation between quantisation and accuracy for all tasks
+    # # convert quantisation to float, make >= 16-bit* = 16, replace -bit with nothing
+    # quantisation = overview_melted["Quantisation"].apply(
+    #     lambda x: 16 if x == ">= 16-bit*" else float(x.replace("-bit", "")),
+    # )
+    def quant_to_float(x):
+        if pd.isna(x) or x == "None":  # catch NaN or string 'None'
+            return np.nan  # or 0 if you prefer
+        if x == ">= 16-bit*":
+            return 16
+        # remove '-bit' and convert
+        return float(x.replace("-bit", ""))
+
+    quantisation = overview_melted["Quantisation"].apply(quant_to_float)
     # Create a mask of rows where 'Accuracy' is not NaN
     mask = overview_melted["Accuracy"].notna()
 

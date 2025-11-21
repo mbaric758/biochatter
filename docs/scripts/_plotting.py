@@ -1,3 +1,5 @@
+#TODO add script to check if it finished without errors, and if not highlight the errors.
+
 import math
 import re
 
@@ -11,26 +13,39 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 BENCHMARKED_MODELS = [
-    "chatglm3",
-    "claude-3-5-sonnet-20240620",
-    "claude-3-opus-20240229",
-    "code-llama-instruct",
-    "gpt-3.5-turbo-0613",
-    "gpt-3.5-turbo-0125",
-    "gpt-4-0613",
-    "gpt-4-0125-preview",
-    "gpt-4-1106-preview",
-    "gpt-4-turbo-2024-04-09",
-    "gpt-4o-2024-05-13",
-    "gpt-4o-2024-08-06",
-    "gpt-4o-2024-11-20",
-    "gpt-4o-mini-2024-07-18",
-    "llama-2-chat",
-    "llama-3-instruct",
-    "llama-3.1-instruct",
-    "mixtral-instruct-v0.1",
-    "mistral-instruct-v0.2",
-    "openhermes-2.5",
+    # "chatglm3",
+    # "claude-3-5-sonnet-20240620",
+    # "claude-3-opus-20240229",
+    # "code-llama-instruct",
+    # "gpt-3.5-turbo-0613",
+    # "gpt-3.5-turbo-0125",
+    # "gpt-4-0613",
+    # "gpt-4-0125-preview",
+    # "gpt-4-1106-preview",
+    # "gpt-4-turbo-2024-04-09",
+    # "gpt-4o-2024-05-13",
+    # "gpt-4o-2024-08-06",
+    # "gpt-4o-2024-11-20",
+    # "gpt-4o-mini-2024-07-18",
+    # "llama-2-chat",
+    # "llama-3-instruct",
+    # "llama-3.1-instruct",
+    # "mixtral-instruct-v0.1",
+    # "mistral-instruct-v0.2",
+    # "openhermes-2.5",
+    "gpt-oss-120b",
+    "big",
+    "medium",
+    "small",
+    "deepseek-v31-terminus",
+    "devstral-small",
+    "jina-reranker-v2-base-multilingual",
+    "magistral-small",
+    "nomic-embed-text-v1-5",
+    "pixtral-large",
+    "qwen2-5-14b-coder",
+    "qwen3-coder-480b",
+    "qwen3-embedding-8b",
 ]
 
 MODEL_SIZE_ORDER = [
@@ -99,13 +114,15 @@ def plot_text2cypher() -> None:
     results["model"] = results["model_name"].apply(lambda x: x.split(":")[0])
     # create labels: openhermes, llama-3, gpt, based on model name, for all
     # other models, use "other open source"
-    results["model_family"] = results["model"].apply(
+    results["model_family"] = (results["model"]
+    .apply(
         lambda x: (
             "openhermes"
             if "openhermes" in x
-            else ("llama-3" if "llama-3" in x else "gpt" if "gpt" in x else "other open source")
+            else ("llama-3" if "llama-3" in x else "gpt" if "gpt" in x else "big" if "big" in x else "medium" if "medium" in x else "small" if "small" in x else "gpt-oss-120b" if "gpt-oss-120b" in x else "other open source")
+            # else ("llama-3" if "llama-3" in x else "gpt" if "gpt" in x else "other open source")
         ),
-    )
+    ))
 
     # order task by median accuracy ascending
     task_order = results.groupby("task")["accuracy"].median().sort_values().index
@@ -113,10 +130,28 @@ def plot_text2cypher() -> None:
     # order model_family by median accuracy ascending within each task
     results["model_family"] = results["model_family"].astype(
         pd.CategoricalDtype(
-            categories=["other open source", "llama-3", "openhermes", "gpt"],
+            categories=[    "gpt-oss-120b",
+    "big",
+    "medium",
+    "small",
+    "deepseek-v31-terminus",
+    "devstral-small",
+    "jina-reranker-v2-base-multilingual",
+    "magistral-small",
+    "nomic-embed-text-v1-5",
+    "pixtral-large",
+    "qwen2-5-14b-coder",
+    "qwen3-coder-480b",
+    "qwen3-embedding-8b",],
             ordered=True,
         ),
     )
+
+    # Show all rows
+    pd.set_option('display.max_rows', None)
+
+
+    print(results)
 
     # plot results per task
     sns.set_theme(style="whitegrid")
@@ -125,7 +160,7 @@ def plot_text2cypher() -> None:
     sns.boxplot(
         x="task",
         y="accuracy",
-        hue="model_family",
+        hue="model_name",
         data=results,
         order=task_order,
     )
@@ -135,6 +170,8 @@ def plot_text2cypher() -> None:
         bbox_inches="tight",
         dpi=300,
     )
+
+
 
 
 def plot_text2cypher_safety_only():
@@ -515,9 +552,19 @@ def plot_scatter_per_quantisation(overview):
     )
 
     plt.ylim(0, 1)
+    # print(overview_melted["Quantisation"])
+    # plt.xticks(
+    #     ticks=range(len(overview_melted["Quantisation"].unique())),
+    #     labels=overview_melted["Quantisation"].cat.categories,
+    # )
+    # Get only valid, non-NaN quantisation values in order
+    labels = [cat for cat in overview_melted["Quantisation"].cat.categories if
+              cat in overview_melted["Quantisation"].dropna().values]
+
     plt.xticks(
-        ticks=range(len(overview_melted["Quantisation"].unique())),
-        labels=overview_melted["Quantisation"].cat.categories,
+        ticks=range(len(labels)),
+        labels=labels,
+        rotation=45,
     )
     plt.title(
         "Scatter plot across models, per quantisation, coloured by model name, size by model size (billions of parameters)",

@@ -268,15 +268,16 @@ def create_overview_table(result_files_path: str, result_file_names: list[str]) 
     overview_per_quantisation[["Model name", "Size", "Version", "Quantisation"]] = overview_per_quantisation[
         "Full model name"
     ].str.split(":", expand=True)
+
     # convert underscores in Size to commas
     overview_per_quantisation["Size"] = overview_per_quantisation["Size"].str.replace("_", ",")
     # add size 175 for gpt-3.5-turbo and Unknown for gpt-4
     overview_per_quantisation["Size"] = overview_per_quantisation.apply(
-        lambda row: ("175" if "gpt-3.5-turbo" in row["Model name"] else row["Size"]),
+        lambda row: ("175" if "gpt-3.5-turbo" in row["Model name"] else "120" if "gpt-oss-120b" in  row["Model name"] else row["Size"]),
         axis=1,
     )
     overview_per_quantisation["Size"] = overview_per_quantisation.apply(
-        lambda row: ("Unknown" if "gpt-4" in row["Model name"] or "claude" in row["Model name"] else row["Size"]),
+        lambda row: ("Unknown" if "gpt-4" or "big" or "medium" or "small" in row["Model name"] or "claude" in row["Model name"] else row["Size"]),
         axis=1,
     )
     overview_per_quantisation = overview_per_quantisation[
