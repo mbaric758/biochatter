@@ -190,3 +190,34 @@ biocypher_query_generation:
           "\\(.*:CaseStudy\\)-\\[:CaseStudyRelevantChemical\\]->\\(.*:Chemical\\)|\\(.*:Chemical\\)<-\\[:CaseStudyRelevantChemical\\]-\\(.*:CaseStudy\\)",
           "WHERE [a-zA-Z]*\\.name|{name:",
         ]
+decider_query_generation:
+    - case: AAAAA
+      input:
+        kg_schema: decider_kg
+        prompt: Which alterations are carried by patients through their samples?
+      expected:
+        entities: [ "Patient", "Sample", "Alteration" ]
+        relationships: [ "PatientCarriesSample", "SampleCarriesAlteration" ]
+        relationship_labels:
+          patient_carries_sample:
+            source: Patient
+            target: Sample
+          sample_carries_alteration:
+            source: Sample
+            target: Alteration
+        properties:
+          Patient: [ "name" ]
+          Sample: [ "name" ]
+          Alteration: [ "name" ]
+        parts_of_query:
+          [
+            "^MATCH",
+            "RETURN",
+            "([a-zA-Z]*:patient)",
+            "([a-zA-Z]*:sample)",
+            "([a-zA-Z]*:alteration)",
+            "([a-zA-Z]*)?:patient_carries_sample]",
+            "([a-zA-Z]*)?:sample_carries_alteration]",
+            "\\(.*:patient\\)-\\[:patient_carries_sample\\]->\\(.*:sample\\)",
+            "\\(.*:sample\\)-\\[:sample_carries_alteration\\]->\\(.*:alteration\\)"
+          ]

@@ -334,3 +334,141 @@ kg_schemas:
       source: chemical
       target: web page
       input_label: chemical_webpage
+  decider_kg:
+    alteration:
+      is_a: sequence variant
+      represented_as: node
+      label_in_input: alteration
+      properties:
+        citation_PM_ids: str
+        consequence: str
+        homogenous: str
+        level_of_evidence: str
+        mutation_effect_description: str
+        name: str
+        oncogenic: str
+        reference_genome: str
+        tumor_type: str
+        tumor_type_summary: str
+        variant_summary: str
+    disease:
+      represented_as: node
+      label_in_input: disease
+      properties:
+        name: str
+    drug:
+      represented_as: node
+      label_in_input: drug
+      properties:
+        name: str
+    gene status:
+      is_a: phenomenon
+      represented_as: node
+      label_in_input: gene_status
+      properties:
+        name: str
+    gene:
+      represented_as: node
+      label_in_input: gene
+      properties:
+        gene_summary: str
+        name: str
+    patient:
+      represented_as: node
+      label_in_input: patient
+      synonym_for: case
+      properties:
+        survival: str
+        treatment_strategy: str
+        name: str
+    sample:
+      is_a: material sample
+      represented_as: node
+      label_in_input: sample
+      properties:
+        name: str
+    carries:
+      is_a: causes
+      represented_as: edge
+      label_in_input: carries
+      properties:
+        name: str
+        edglelabel: str
+    patient carries sample:
+      is_a: carries
+      represented_as: edge
+      label_in_input: patient_carries_sample
+      source: patient
+      target: sample
+      properties:
+        name: str
+        edglelabel: str
+    sample carries alteration:
+      is_a: carries
+      represented_as: edge
+      label_in_input: sample_carries_alteration
+      source: sample
+      target: alteration
+      properties:
+        name: str
+        edglelabel: str
+    alteration causes gene status:
+      is_a: causes
+      represented_as: edge
+      label_in_input: alteration_causes_gene_status
+      source: alteration
+      target: gene status
+      properties:
+        name: str
+        edglelabel: str
+    alteration biomarker for drug:
+      is_a: biomarker for
+      represented_as: edge
+      label_in_input: alteration_biomarker_for_drug
+      source: alteration
+      target: drug
+      properties:
+        name: str
+        edglelabel: str
+    patient has chronic illness:
+      is_a: entity to disease association
+      represented_as: edge
+      label_in_input: patient_has_chronic_illness
+      source: patient
+      target: disease
+      properties:
+        name: str
+    gene status affects gene:
+      is_a: affects
+      represented_as: edge
+      label_in_input: gene_status_affects_gene
+      source: gene status
+      target: gene
+      properties:
+        name: str
+        edglelabel: str
+    biological process:
+      is_a: named thing
+      represented_as: node
+      label_in_input: biological_process
+      properties:
+        name: str
+    gene to biological process:
+      is_a: association
+      represented_as: edge
+      label_in_input: gene_to_biological_process
+      source: gene
+      target: biological process
+      properties:
+        edglelabel: str
+        name: str
+
+    biological process to gene:
+      is_a: association
+      represented_as: edge
+      label_in_input: biological_process_to_gene
+      source: biological process
+      target: gene
+      properties:
+        # edglelabel: str
+        name: str
