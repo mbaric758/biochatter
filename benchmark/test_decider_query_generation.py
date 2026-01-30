@@ -17,12 +17,12 @@ from .conftest import calculate_bool_vector_score
 
 def test_naive_query_generation_using_schema(
     model_name,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     skip_if_already_run(
         model_name=model_name,
@@ -46,7 +46,7 @@ def test_naive_query_generation_using_schema(
 
         query, _, _ = conversation.query(yaml_data["input"]["prompt"])
 
-        logging.info(f"\nQuery naive : {query}")
+        logging.info(query)
 
         score = []
         for expected_part_of_query in yaml_data["expected"]["parts_of_query"]:
@@ -94,12 +94,12 @@ def get_prompt_engine(
 def test_entity_selection(
     model_name,
     prompt_engine,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     skip_if_already_run(
         model_name=model_name,
@@ -119,9 +119,9 @@ def test_entity_selection(
         )
         assert success
 
-        score = []
+        logging.info(prompt_engine.selected_entities)
 
-        logging.info(f"\nEntity selection test: {prompt_engine.selected_entities}")
+        score = []
         for expected_entity in yaml_data["expected"]["entities"]:
             score.append(expected_entity in prompt_engine.selected_entities)
         return calculate_bool_vector_score(score)
@@ -141,12 +141,12 @@ def test_entity_selection(
 def test_relationship_selection(
     model_name,
     prompt_engine,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     if not yaml_data["expected"]["relationships"]:
         pytest.skip("No relationships to test")
@@ -172,7 +172,7 @@ def test_relationship_selection(
 
         score = []
 
-        logging.info(f"\nRelationship selection test: {prompt_engine.selected_relationships}")
+        logging.info(prompt_engine.selected_relationship_labels.keys())
 
         for expected_relationship_label_key in yaml_data["expected"]["relationship_labels"].keys():
             score.append(
@@ -206,12 +206,12 @@ def test_relationship_selection(
 def test_property_selection(
     model_name,
     prompt_engine,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     skip_if_already_run(
         model_name=model_name,
@@ -233,9 +233,6 @@ def test_property_selection(
 
         if success:
             score = []
-
-            logging.info(f"\nProperties selection test: {prompt_engine.selected_properties.keys()}")
-
             for expected_property_key in yaml_data["expected"]["properties"].keys():
                 try:
                     score.append(
@@ -274,12 +271,12 @@ def test_property_selection(
 def test_query_generation(
     model_name,
     prompt_engine,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     skip_if_already_run(
         model_name=model_name,
@@ -303,9 +300,6 @@ def test_query_generation(
         )
 
         score = []
-
-        logging.info(f"\nQuery generation: {query}")
-
         for expected_part_of_query in yaml_data["expected"]["parts_of_query"]:
             if isinstance(expected_part_of_query, tuple):
                 score.append(
@@ -332,12 +326,12 @@ def test_query_generation(
 def test_end_to_end_query_generation(
     model_name,
     prompt_engine,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     skip_if_already_run(
         model_name=model_name,
@@ -358,7 +352,7 @@ def test_end_to_end_query_generation(
             )
             score = []
 
-            logging.info(f"\n End-to-end Query generation: {query}")
+            logging.info(query)
 
             for expected_part_of_query in yaml_data["expected"]["parts_of_query"]:
                 if isinstance(expected_part_of_query, tuple):
@@ -472,12 +466,12 @@ def get_used_property_from_query(query):
 def test_property_exists(
     model_name,
     prompt_engine,
-    test_data_biocypher_query_generation,
+    test_data_decider_query_generation,
     kg_schemas,
     conversation,
     multiple_testing,
 ):
-    yaml_data = test_data_biocypher_query_generation
+    yaml_data = test_data_decider_query_generation
     task = f"{inspect.currentframe().f_code.co_name.replace('test_', '')}"
     skip_if_already_run(
         model_name=model_name,
@@ -543,8 +537,8 @@ def test_property_exists(
 
 
 @pytest.mark.skip(reason="Helper function for testing regex patterns")
-def test_regex(test_data_biocypher_query_generation):
-    yaml_data = test_data_biocypher_query_generation
+def test_regex(test_data_decider_query_generation):
+    yaml_data = test_data_decider_query_generation
     query = 'MATCH (g:Gene)-[:GENE_EXPRESSED_IN_CELL_TYPE]->(c:CellType) WHERE c.cell_type_name = "fibroblast" RETURN g.id, g.name, c.cell_type_name, c.expression_level ORDER BY c.expression_level DESC'
     score = []
     for expected_part_of_query in yaml_data["expected"]["parts_of_query"]:

@@ -53,17 +53,17 @@ OPENAI_MODEL_NAMES = [
     # "gpt-4o-2024-05-13",
     # "gpt-4o-2024-08-06",
     # "gpt-4o-2024-11-20",
-    "gpt-4o-mini-2024-07-18",
-    # GPT-4.1 models
-    # "gpt-4.1-2025-04-14",
-    "gpt-4.1-mini-2025-04-14",
-    # "gpt-4.1-nano-2025-04-14",
-    # GPT-5 models
-    "gpt-5-2025-08-07",
-    # "gpt-5-chat-latest",
-    # "gpt-5-codex",
-    "gpt-5-mini-2025-08-07",
-    "gpt-5-nano-2025-08-07",
+    # "gpt-4o-mini-2024-07-18",
+    # # GPT-4.1 models
+    # # "gpt-4.1-2025-04-14",
+    # "gpt-4.1-mini-2025-04-14",
+    # # "gpt-4.1-nano-2025-04-14",
+    # # GPT-5 models
+    # "gpt-5-2025-08-07",
+    # # "gpt-5-chat-latest",
+    # # "gpt-5-codex",
+    # "gpt-5-mini-2025-08-07",
+    # "gpt-5-nano-2025-08-07",
     # "gpt-5-pro-2025-10-06",
     # O1 models (reasoning models)
     # "o1",
@@ -90,8 +90,8 @@ LM_STUDIO_MODEL_NAMES = [
 ]
 
 ANTHROPIC_MODEL_NAMES = [
-    "claude-sonnet-4-5-20250929",
-    "claude-haiku-4-5-20251001",
+    # "claude-sonnet-4-5-20250929",
+    # "claude-haiku-4-5-20251001",
 ]
 
 XINFERENCE_MODELS = {
@@ -483,7 +483,7 @@ def conversation(request, model_name, client) -> Conversation:
             model_name=model_name,
             prompts={},
             correct=False,
-            base_url="INSERT_BASE_URL"
+            base_url="" # TODO: add CLI option to set custom base URL. For Pasteur use link to llm cloud.
         )
         conversation.set_api_key(
             os.getenv("OPENAI_API_KEY"),
@@ -996,6 +996,7 @@ def pytest_generate_tests(metafunc):
     parametrize_if_present("test_data_api_calling", "api_calling")
     parametrize_if_present("test_data_medical_exam", "medical_exam")
     parametrize_if_present("test_create_longevity_responses_simultaneously", "longevity_geriatric_case_assessment")
+    parametrize_if_present("test_data_decider_query_generation", "decider_query_generation")
 
 
 import pytest

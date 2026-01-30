@@ -381,6 +381,7 @@ kg_schemas:
         survival: str
         treatment_strategy: str
         name: str
+        age: str
     sample:
       is_a: material sample
       represented_as: node
